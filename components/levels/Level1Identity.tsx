@@ -1,62 +1,81 @@
-// services/sheetService.ts
-import { FormData } from "../types";
-import { GOOGLE_SHEET_URL } from "../constants";
+import React from 'react';
+import { MapPin } from 'lucide-react';
+import { LevelContainer } from '../ui/LevelContainer';
+import { Button } from '../ui/Button';
+import { FormData, Gender, FamilyContact } from '../../types';
 
-const pick = (...values: any[]) => {
-  for (const v of values) {
-    if (v !== undefined && v !== null && String(v).trim() !== "") return v;
-  }
-  return "";
-};
-
-function mapToSheetPayload(data: any) {
-  return {
-    // Nivel 1 (tu app usa estos nombres)
-    nombre: pick(data.fullName, data.nombre, data.name),
-    nombre_preferido: pick(data.preferredName, data.nombre_preferido, data.nickname),
-    edad: pick(data.age, data.edad),
-    genero: pick(data.gender, data.genero),
-    genero_otro: pick(data.genderDescription, data.genero_otro),
-    origen: pick(data.origin, data.origen),
-    contacto_familia: pick(data.familyContact, data.contacto_familia),
-
-    // Nivel 2 (dejo varios alias por si tu app usa otros nombres)
-    tratamiento_medico: pick(data.tratamiento_medico, data.medicalTreatment, data.medical_treatment),
-    cual_medico: pick(data.cual_medico, data.whichMedical, data.medicalTreatmentWhich),
-    tratamiento_psicologico: pick(data.tratamiento_psicologico, data.psychTreatment, data.psychological_treatment),
-    cual_psicologico: pick(data.cual_psicologico, data.whichPsych, data.psychTreatmentWhich),
-    apoyo_habitos: pick(data.apoyo_habitos, data.habitsSupport, data.habits_support),
-    cual_habitos: pick(data.cual_habitos, data.whichHabits, data.habitsSupportWhich),
-
-    // Nivel 3 (Likert)
-    temor_futuro: pick(data.temor_futuro, data.fearFuture, data.fear_future),
-    inseguridad: pick(data.inseguridad, data.insecurity),
-    suenos: pick(data.suenos, data.dreams),
-    lograr_cosas: pick(data.lograr_cosas, data.achieveThings, data.achieve_things),
-    oportunidades: pick(data.oportunidades, data.opportunities),
-    aprendizaje: pick(data.aprendizaje, data.learning),
-    tranquilidad: pick(data.tranquilidad, data.calm),
-    bienestar_personal: pick(data.bienestar_personal, data.personalWellbeing, data.personal_wellbeing),
-
-    // Nivel 4 (sueño abierto)
-    sueno: pick(data.sueno, data.dreamGoal, data.dream_goal),
-  };
+interface Level1Props {
+  data: FormData;
+  onChange: (field: keyof FormData, value: any) => void;
+  onNext: () => void;
 }
 
-export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
-  try {
-    const payload = mapToSheetPayload(data);
+export const Level1Identity: React.FC<Level1Props> = ({ data, onChange, onNext }) => {
+  const isFormValid = 
+    data.fullName.trim() !== '' &&
+    data.age.trim() !== '' &&
+    data.gender !== '' &&
+    (data.gender !== Gender.DESCRIBE || data.genderDescription.trim() !== '') &&
+    data.origin.trim() !== '' &&
+    data.familyContact !== '';
 
-    await fetch(GOOGLE_SHEET_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+  return (
+    <LevelContainer 
+      title="Puerta de Entrada: Tu Identidad" 
+      icon={<MapPin size={28} />}
+    >
+      <div className="space-y-5">
+        
+        {/* Full Name */}
+        <div>
+          <label className="block text-gray-700 font-semibold mb-2">1. ¿Cómo te llamas?</label>
+          <input 
+            type="text" 
+            value={data.fullName}
+            onChange={(e) => onChange('fullName', e.target.value)}
+            className="w-full p-3 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+            placeholder="Tu nombre completo"
+          />
+        </div>
 
-    return true;
-  } catch (error) {
-    console.error("Error submitting data to Google Sheet:", error);
-    return false;
-  }
-};
+        {/* Preferred Name */}
+        <div>
+          <label className="block text-gray-700 font-semibold mb-2">2. ¿Cómo te gusta que te llamen?</label>
+          <input 
+            type="text" 
+            value={data.preferredName}
+            onChange={(e) => onChange('preferredName', e.target.value)}
+            className="w-full p-3 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+            placeholder="Tu apodo o nombre preferido"
+          />
+        </div>
+
+        {/* Age */}
+        <div>
+          <label className="block text-gray-700 font-semibold mb-2">3. ¿Cuántos años tienes?</label>
+          <input 
+            type="number" 
+            value={data.age}
+            onChange={(e) => onChange('age', e.target.value)}
+            className="w-full p-3 rounded-xl border border-purple-200 focus:border-purple-500 focus:ring-2 focus:ring-purple-200 outline-none transition-all"
+            placeholder="Ej: 15"
+          />
+        </div>
+
+        {/* Gender Identity */}
+        <div>
+          <label className="block text-gray-700 font-semibold mb-2">4. Identidad de género</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {Object.values(Gender).map((g) => (
+              <button
+                key={g}
+                type="button"
+                onClick={() => onChange('gender', g)}
+                className={`p-3 rounded-xl text-left text-sm font-medium transition-all ${
+                  data.gender === g 
+                  ? 'bg-purple-500 text-white shadow-md' 
+                  : 'bg-purple-50 text-purple-800 hover:bg-purple-100'
+                }`}
+              >
+                {g}
+              

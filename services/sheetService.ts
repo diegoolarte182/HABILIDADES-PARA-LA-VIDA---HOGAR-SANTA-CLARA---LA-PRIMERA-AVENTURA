@@ -2,49 +2,58 @@
 import { FormData } from "../types";
 import { GOOGLE_SHEET_URL } from "../constants";
 
-function pick(...values: any[]) {
+const pick = (...values: any[]) => {
   for (const v of values) {
     if (v !== undefined && v !== null && String(v).trim() !== "") return v;
   }
   return "";
-}
+};
 
-function mapToSheet(data: any) {
+const boolToSiNo = (v: any) => {
+  if (v === true) return "Sí";
+  if (v === false) return "No";
+  return "";
+};
+
+function mapToSheetPayload(data: any) {
   return {
-    nombre: pick(data.nombre, data.name),
-    nombre_preferido: pick(data.nombre_preferido, data.nombrePreferido, data.nickname),
-    edad: pick(data.edad, data.age),
-    genero: pick(data.genero, data.gender),
-    genero_otro: pick(data.genero_otro, data.generoOtro, data.gender_other),
+    // Nivel 1 (tu app usa estos nombres)
+    nombre: pick(data.fullName, data.nombre, data.name),
+    nombre_preferido: pick(data.preferredName, data.nombre_preferido, data.nickname),
+    edad: pick(data.age, data.edad),
+    genero: pick(data.gender, data.genero),
+    genero_otro: pick(data.genderDescription, data.genero_otro),
+    origen: pick(data.origin, data.origen),
+    contacto_familia: pick(data.familyContact, data.contacto_familia),
 
-    origen: pick(data.origen, data.origin),
-    contacto_familia: pick(data.contacto_familia, data.contactoFamilia, data.family_contact),
+    // ✅ Nivel 2 (mapa EXACTO desde tus campos reales)
+    tratamiento_medico: pick(data.tratamiento_medico, boolToSiNo(data.medicalTreatment)),
+    cual_medico: pick(data.cual_medico, data.medicalTreatmentDesc),
 
-    tratamiento_medico: pick(data.tratamiento_medico, data.tratamientoMedico, data.medical_treatment),
-    cual_medico: pick(data.cual_medico, data.cualMedico, data.which_medical),
+    tratamiento_psicologico: pick(data.tratamiento_psicologico, boolToSiNo(data.psychSupport)),
+    cual_psicologico: pick(data.cual_psicologico, data.psychSupportDesc),
 
-    tratamiento_psicologico: pick(data.tratamiento_psicologico, data.tratamientoPsicologico, data.psychological_treatment),
-    cual_psicologico: pick(data.cual_psicologico, data.cualPsicologico, data.which_psychological),
+    apoyo_habitos: pick(data.apoyo_habitos, boolToSiNo(data.substanceSupport)),
+    cual_habitos: pick(data.cual_habitos, data.substanceSupportDesc),
 
-    apoyo_habitos: pick(data.apoyo_habitos, data.apoyoHabitos, data.habits_support),
-    cual_habitos: pick(data.cual_habitos, data.cualHabitos, data.which_habits),
-
-    temor_futuro: pick(data.temor_futuro, data.fear_future),
+    // Nivel 3 (Likert) - lo afinamos cuando me pegues Level3
+    temor_futuro: pick(data.temor_futuro, data.fearFuture),
     inseguridad: pick(data.inseguridad, data.insecurity),
     suenos: pick(data.suenos, data.dreams),
-    lograr_cosas: pick(data.lograr_cosas, data.achieve),
+    lograr_cosas: pick(data.lograr_cosas, data.achieveThings),
     oportunidades: pick(data.oportunidades, data.opportunities),
     aprendizaje: pick(data.aprendizaje, data.learning),
     tranquilidad: pick(data.tranquilidad, data.calm),
-    bienestar_personal: pick(data.bienestar_personal, data.personal_wellbeing),
+    bienestar_personal: pick(data.bienestar_personal, data.personalWellbeing),
 
-    sueno: pick(data.sueno, data.dream_goal, data.dream),
+    // Nivel 4 (abierta)
+    sueno: pick(data.sueno, data.dreamGoal, data.dream_goal),
   };
 }
 
 export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
   try {
-    const payload = mapToSheet(data);
+    const payload = mapToSheetPayload(data);
 
     await fetch(GOOGLE_SHEET_URL, {
       method: "POST",
@@ -59,5 +68,4 @@ export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
     return false;
   }
 };
-
 
