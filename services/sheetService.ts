@@ -1,23 +1,28 @@
-import { FormData } from '../types';
-import { GOOGLE_SHEET_URL } from '../constants';
+// services/sheetService.ts
+import { FormData } from "../types";
+import { GOOGLE_SHEET_URL } from "../constants";
 
+/**
+ * Envía los datos a Google Sheets usando un Apps Script Web App.
+ * Usamos mode:"no-cors" para evitar bloqueos típicos de CORS en el navegador.
+ * Nota: con "no-cors" no podemos leer la respuesta del servidor; si no hay error de red,
+ * asumimos que el envío fue exitoso.
+ */
 export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
   try {
-    // Note: Google Apps Script Web Apps often require 'no-cors' mode if simply firing and forgetting,
-    // or handling JSONP. However, adhering strictly to the prompt:
-    const response = await fetch(GOOGLE_SHEET_URL, {
+    await fetch(GOOGLE_SHEET_URL, {
       method: "POST",
+      mode: "no-cors",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify(data),
-      headers: { "Content-Type": "application/json" }
     });
 
-    // In a real CORS scenario with simple POST to Apps Script, the response might be opaque.
-    // We assume success if no network error occurred, or handle the specific response if CORS allows.
-    return response.ok;
+    // Si no hubo error de red, asumimos éxito
+    return true;
   } catch (error) {
-    console.error("Error submitting data", error);
-    // For the sake of the demo, we might want to return true to show the success screen
-    // if the URL is just a placeholder, but in prod, return false.
+    console.error("Error submitting data to Google Sheet:", error);
     return false;
   }
 };
