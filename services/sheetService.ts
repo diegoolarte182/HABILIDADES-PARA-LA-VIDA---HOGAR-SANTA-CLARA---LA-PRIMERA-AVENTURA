@@ -2,47 +2,49 @@
 import { FormData } from "../types";
 import { GOOGLE_SHEET_URL } from "../constants";
 
-/**
- * Mapea (traduce) las llaves del formulario a las llaves esperadas por Google Sheets / Apps Script.
- * Ajusta aquí si tus nombres en FormData son diferentes.
- */
-function mapToSheetPayload(data: any) {
+function pick(...values: any[]) {
+  for (const v of values) {
+    if (v !== undefined && v !== null && String(v).trim() !== "") return v;
+  }
+  return "";
+}
+
+function mapToSheet(data: any) {
   return {
-    // Demográficos
-    nombre: data.nombre ?? data.name ?? "",
-    nombre_preferido: data.nombre_preferido ?? data.nickname ?? data.nombrePreferido ?? "",
-    edad: data.edad ?? data.age ?? "",
-    genero: data.genero ?? data.gender ?? "",
-    genero_otro: data.genero_otro ?? data.gender_other ?? data.generoOtro ?? "",
-    origen: data.origen ?? data.origin ?? "",
-    contacto_familia: data.contacto_familia ?? data.family_contact ?? data.contactoFamilia ?? "",
+    nombre: pick(data.nombre, data.name),
+    nombre_preferido: pick(data.nombre_preferido, data.nombrePreferido, data.nickname),
+    edad: pick(data.edad, data.age),
+    genero: pick(data.genero, data.gender),
+    genero_otro: pick(data.genero_otro, data.generoOtro, data.gender_other),
 
-    // Nivel 2 (Sí/No + cuál)
-    tratamiento_medico: data.tratamiento_medico ?? data.medical_treatment ?? data.tratamientoMedico ?? "",
-    cual_medico: data.cual_medico ?? data.which_medical ?? data.cualMedico ?? "",
-    tratamiento_psicologico: data.tratamiento_psicologico ?? data.psychological_treatment ?? data.tratamientoPsicologico ?? "",
-    cual_psicologico: data.cual_psicologico ?? data.which_psychological ?? data.cualPsicologico ?? "",
-    apoyo_habitos: data.apoyo_habitos ?? data.habits_support ?? data.apoyoHabitos ?? "",
-    cual_habitos: data.cual_habitos ?? data.which_habits ?? data.cualHabitos ?? "",
+    origen: pick(data.origen, data.origin),
+    contacto_familia: pick(data.contacto_familia, data.contactoFamilia, data.family_contact),
 
-    // Likert (1–5)
-    temor_futuro: data.temor_futuro ?? data.fear_future ?? "",
-    inseguridad: data.inseguridad ?? data.insecurity ?? "",
-    suenos: data.suenos ?? data.dreams ?? "",
-    lograr_cosas: data.lograr_cosas ?? data.achieve ?? "",
-    oportunidades: data.oportunidades ?? data.opportunities ?? "",
-    aprendizaje: data.aprendizaje ?? data.learning ?? "",
-    tranquilidad: data.tranquilidad ?? data.calm ?? "",
-    bienestar_personal: data.bienestar_personal ?? data.personal_wellbeing ?? "",
+    tratamiento_medico: pick(data.tratamiento_medico, data.tratamientoMedico, data.medical_treatment),
+    cual_medico: pick(data.cual_medico, data.cualMedico, data.which_medical),
+
+    tratamiento_psicologico: pick(data.tratamiento_psicologico, data.tratamientoPsicologico, data.psychological_treatment),
+    cual_psicologico: pick(data.cual_psicologico, data.cualPsicologico, data.which_psychological),
+
+    apoyo_habitos: pick(data.apoyo_habitos, data.apoyoHabitos, data.habits_support),
+    cual_habitos: pick(data.cual_habitos, data.cualHabitos, data.which_habits),
+
+    temor_futuro: pick(data.temor_futuro, data.fear_future),
+    inseguridad: pick(data.inseguridad, data.insecurity),
+    suenos: pick(data.suenos, data.dreams),
+    lograr_cosas: pick(data.lograr_cosas, data.achieve),
+    oportunidades: pick(data.oportunidades, data.opportunities),
+    aprendizaje: pick(data.aprendizaje, data.learning),
+    tranquilidad: pick(data.tranquilidad, data.calm),
+    bienestar_personal: pick(data.bienestar_personal, data.personal_wellbeing),
+
+    sueno: pick(data.sueno, data.dream_goal, data.dream),
   };
 }
 
 export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
   try {
-    const payload = mapToSheetPayload(data);
-
-    // (para debug) puedes ver qué va a mandar
-    console.log("PAYLOAD FINAL A SHEET:", payload);
+    const payload = mapToSheet(data);
 
     await fetch(GOOGLE_SHEET_URL, {
       method: "POST",
@@ -57,4 +59,5 @@ export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
     return false;
   }
 };
+
 
