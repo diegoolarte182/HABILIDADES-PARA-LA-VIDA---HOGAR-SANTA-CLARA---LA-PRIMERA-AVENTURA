@@ -1,5 +1,5 @@
 export const GOOGLE_SHEET_URL =
-  "https://script.google.com/macros/s/AKfycbzTBUzHtSOEIYiknHr68NrJUAZh8iP4-lH9xYhRd9Ifv4p-AfM8cswOJkYN_dTJM3fjuQ/exec";
+  "https://script.google.com/macros/library/d/1Q2DdYua2ojdJTwzEH2SdvVLPJKsIDJ9HQgVcMJ527j1E2jlmP58h7Rzf/9";
 
 export const ANIMATION_VARIANTS = {
   hidden: { opacity: 0, x: 20 },
