@@ -1,115 +1,64 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence } from 'framer-motion';
-import { WelcomeScreen } from './components/WelcomeScreen';
-import { Level1Identity } from './components/levels/Level1Identity';
-import { Level2Backpack } from './components/levels/Level2Backpack';
-import { Level3Compass } from './components/levels/Level3Compass';
-import { Level4Treasure } from './components/levels/Level4Treasure';
-import { FinalScreen } from './components/FinalScreen';
-import { ProgressBar } from './components/ProgressBar';
-import { INITIAL_DATA, FormData } from './types';
-import { submitDataToSheet } from './services/sheetService';
+// services/sheetService.ts
+import { FormData } from "../types";
+import { GOOGLE_SHEET_URL } from "../constants";
 
-const TOTAL_LEVELS = 4;
-
-const App: React.FC = () => {
-  const [currentLevel, setCurrentLevel] = useState(0); // 0 = Welcome, 5 = Final
-  const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // ✅ Debug: confirmar que este App.tsx se está ejecutando
-  useEffect(() => {
-    console.log('🔥 App.tsx MONTADO (si ves esto, este App.tsx es el activo)');
-  }, []);
-
-  const handleFieldChange = (field: keyof FormData, value: any) => {
-    console.log('🧩 handleFieldChange:', field, value);
-    setFormData(prev => {
-      const updated = { ...prev, [field]: value };
-      console.log('🧠 formData actualizado:', updated);
-      return updated;
-    });
-  };
-
-  const nextLevel = () => {
-    setCurrentLevel(prev => prev + 1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleSubmit = async () => {
-    try {
-      setIsSubmitting(true);
-
-      // ✅ Debug: ver el formData completo antes de enviar
-      console.log('📤 ENVIANDO FORMDATA COMPLETO:', formData);
-
-      const success = await submitDataToSheet(formData);
-      console.log('✅ submitDataToSheet success:', success);
-    } catch (err) {
-      console.error('❌ Error en handleSubmit:', err);
-    } finally {
-      setIsSubmitting(false);
-      nextLevel();
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-800 font-sans selection:bg-purple-200">
-      <ProgressBar currentLevel={currentLevel} totalLevels={TOTAL_LEVELS} />
-
-      <main className="container mx-auto px-4 pt-20 pb-12 min-h-screen flex flex-col justify-center">
-        <AnimatePresence mode="wait">
-          {currentLevel === 0 && (
-            <WelcomeScreen key="welcome" onStart={nextLevel} />
-          )}
-
-          {currentLevel === 1 && (
-            <Level1Identity
-              key="level1"
-              data={formData}
-              onChange={handleFieldChange}
-              onNext={nextLevel}
-            />
-          )}
-
-          {currentLevel === 2 && (
-            <Level2Backpack
-              key="level2"
-              data={formData}
-              onChange={handleFieldChange}
-              onNext={nextLevel}
-            />
-          )}
-
-          {currentLevel === 3 && (
-            <Level3Compass
-              key="level3"
-              data={formData}
-              onChange={handleFieldChange}
-              onNext={nextLevel}
-            />
-          )}
-
-          {currentLevel === 4 && (
-            <Level4Treasure
-              key="level4"
-              data={formData}
-              onChange={handleFieldChange}
-              onSubmit={handleSubmit}
-              isSubmitting={isSubmitting}
-            />
-          )}
-
-          {currentLevel === 5 && (
-            <FinalScreen key="final" />
-          )}
-        </AnimatePresence>
-      </main>
-
-      <div className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400" />
-    </div>
-  );
+const yesNo = (v: boolean | null) => (v === true ? "Sí" : v === false ? "No" : "");
+const toStrNum = (v: any) => {
+  const n = Number(v);
+  return Number.isNaN(n) ? "" : String(n);
 };
 
-export default App;
+export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
+  try {
+    const payload: Record<string, string> = {
+      // Nivel 1
+      nombre: data.fullName ?? "",
+      nombre_preferido: data.preferredName ?? "",
+      edad: data.age ?? "",
+      genero: data.gender ? String(data.gender) : "",
+      genero_otro: data.genderDescription ?? "",
+      origen: data.origin ?? "",
+      contacto_familia: data.familyContact ? String(data.familyContact) : "",
+
+      // Nivel 2
+      tratamiento_medico: yesNo(data.medicalTreatment),
+      cual_medico: data.medicalTreatmentDesc ?? "",
+      tratamiento_psicologico: yesNo(data.psychSupport),
+      cual_psicologico: data.psychSupportDesc ?? "",
+      apoyo_habitos: yesNo(data.substanceSupport),
+      cual_habitos: data.substanceSupportDesc ?? "",
+
+      // Nivel 3 (duplicado por bloque)
+      temor_futuro: toStrNum(data.scaleTemores),
+      inseguridad: toStrNum(data.scaleTemores),
+
+      suenos: toStrNum(data.scaleEsperanzas),
+      lograr_cosas: toStrNum(data.scaleEsperanzas),
+
+      oportunidades: toStrNum(data.scaleOportunidades),
+      aprendizaje: toStrNum(data.scaleOportunidades),
+
+      tranquilidad: toStrNum(data.scaleBienestar),
+      bienestar_personal: toStrNum(data.scaleBienestar),
+
+      // Nivel 4 (en tu types.ts se llama dream)
+      sueno: data.dream ?? "",
+    };
+
+    console.log("📤 Payload FINAL (a Sheets):", payload);
+
+    const formBody = new URLSearchParams(payload);
+
+    await fetch(GOOGLE_SHEET_URL, {
+      method: "POST",
+      mode: "no-cors",
+      body: formBody,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("❌ Error submitting data:", error);
+    return false;
+  }
+};
 
