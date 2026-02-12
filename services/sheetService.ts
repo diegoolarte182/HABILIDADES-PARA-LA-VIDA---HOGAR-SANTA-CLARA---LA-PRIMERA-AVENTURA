@@ -2,58 +2,53 @@
 import { FormData } from "../types";
 import { GOOGLE_SHEET_URL } from "../constants";
 
-const pick = (...values: any[]) => {
-  for (const v of values) {
-    if (v !== undefined && v !== null && String(v).trim() !== "") return v;
-  }
-  return "";
+const yesNo = (v: boolean | null) => (v === true ? "Sí" : v === false ? "No" : "");
+
+const toNum = (v: any) => {
+  if (v === null || v === undefined || v === "") return "";
+  const n = Number(v);
+  return Number.isNaN(n) ? "" : n;
 };
-
-const boolToSiNo = (v: any) => {
-  if (v === true) return "Sí";
-  if (v === false) return "No";
-  return "";
-};
-
-function mapToSheetPayload(data: any) {
-  return {
-    // Nivel 1 (tu app usa estos nombres)
-    nombre: pick(data.fullName, data.nombre, data.name),
-    nombre_preferido: pick(data.preferredName, data.nombre_preferido, data.nickname),
-    edad: pick(data.age, data.edad),
-    genero: pick(data.gender, data.genero),
-    genero_otro: pick(data.genderDescription, data.genero_otro),
-    origen: pick(data.origin, data.origen),
-    contacto_familia: pick(data.familyContact, data.contacto_familia),
-
-    // ✅ Nivel 2 (mapa EXACTO desde tus campos reales)
-    tratamiento_medico: pick(data.tratamiento_medico, boolToSiNo(data.medicalTreatment)),
-    cual_medico: pick(data.cual_medico, data.medicalTreatmentDesc),
-
-    tratamiento_psicologico: pick(data.tratamiento_psicologico, boolToSiNo(data.psychSupport)),
-    cual_psicologico: pick(data.cual_psicologico, data.psychSupportDesc),
-
-    apoyo_habitos: pick(data.apoyo_habitos, boolToSiNo(data.substanceSupport)),
-    cual_habitos: pick(data.cual_habitos, data.substanceSupportDesc),
-
-    // Nivel 3 (Likert) - lo afinamos cuando me pegues Level3
-    temor_futuro: pick(data.temor_futuro, data.fearFuture),
-    inseguridad: pick(data.inseguridad, data.insecurity),
-    suenos: pick(data.suenos, data.dreams),
-    lograr_cosas: pick(data.lograr_cosas, data.achieveThings),
-    oportunidades: pick(data.oportunidades, data.opportunities),
-    aprendizaje: pick(data.aprendizaje, data.learning),
-    tranquilidad: pick(data.tranquilidad, data.calm),
-    bienestar_personal: pick(data.bienestar_personal, data.personalWellbeing),
-
-    // Nivel 4 (abierta)
-    sueno: pick(data.sueno, data.dreamGoal, data.dream_goal),
-  };
-}
 
 export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
   try {
-    const payload = mapToSheetPayload(data);
+    const payload = {
+      // Nivel 1 (FormData real)
+      nombre: data.fullName || "",
+      nombre_preferido: data.preferredName || "",
+      edad: data.age || "",
+      genero: data.gender || "",
+      genero_otro: data.genderDescription || "",
+      origen: data.origin || "",
+      contacto_familia: data.familyContact || "",
+
+      // Nivel 2 (FormData real)
+      tratamiento_medico: yesNo(data.medicalTreatment),
+      cual_medico: data.medicalTreatmentDesc || "",
+      tratamiento_psicologico: yesNo(data.psychSupport),
+      cual_psicologico: data.psychSupportDesc || "",
+      apoyo_habitos: yesNo(data.substanceSupport),
+      cual_habitos: data.substanceSupportDesc || "",
+
+      // Nivel 3 (duplicamos cada escala para las 2 columnas del bloque)
+      temor_futuro: toNum(data.scaleTemores),
+      inseguridad: toNum(data.scaleTemores),
+
+      suenos: toNum(data.scaleEsperanzas),
+      lograr_cosas: toNum(data.scaleEsperanzas),
+
+      oportunidades: toNum(data.scaleOportunidades),
+      aprendizaje: toNum(data.scaleOportunidades),
+
+      tranquilidad: toNum(data.scaleBienestar),
+      bienestar_personal: toNum(data.scaleBienestar),
+
+      // Nivel 4 (en tu types.ts se llama dream)
+      sueno: data.dream || "",
+    };
+
+    // Debug (opcional)
+    console.log("📤 Payload a Sheets (ES):", payload);
 
     await fetch(GOOGLE_SHEET_URL, {
       method: "POST",
@@ -68,4 +63,6 @@ export const submitDataToSheet = async (data: FormData): Promise<boolean> => {
     return false;
   }
 };
+
+
 
