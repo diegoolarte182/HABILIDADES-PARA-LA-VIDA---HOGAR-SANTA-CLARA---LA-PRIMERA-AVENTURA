@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { WelcomeScreen } from './components/WelcomeScreen';
 import { Level1Identity } from './components/levels/Level1Identity';
@@ -13,12 +13,22 @@ import { submitDataToSheet } from './services/sheetService';
 const TOTAL_LEVELS = 4;
 
 const App: React.FC = () => {
-  const [currentLevel, setCurrentLevel] = useState(0); // 0 = Welcome, 5 = Success
+  const [currentLevel, setCurrentLevel] = useState(0); // 0 = Welcome, 5 = Final
   const [formData, setFormData] = useState<FormData>(INITIAL_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ✅ Debug: confirmar que este App.tsx se está ejecutando
+  useEffect(() => {
+    console.log('🔥 App.tsx MONTADO (si ves esto, este App.tsx es el activo)');
+  }, []);
+
   const handleFieldChange = (field: keyof FormData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    console.log('🧩 handleFieldChange:', field, value);
+    setFormData(prev => {
+      const updated = { ...prev, [field]: value };
+      console.log('🧠 formData actualizado:', updated);
+      return updated;
+    });
   };
 
   const nextLevel = () => {
@@ -27,18 +37,20 @@ const App: React.FC = () => {
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
+    try {
+      setIsSubmitting(true);
 
-    // ✅ DEBUG 1: ver formData completo ANTES de enviar
-    console.log('✅ FORMDATA COMPLETO (antes de enviar):', formData);
+      // ✅ Debug: ver el formData completo antes de enviar
+      console.log('📤 ENVIANDO FORMDATA COMPLETO:', formData);
 
-    const success = await submitDataToSheet(formData);
-
-    // ✅ DEBUG 2: ver si "envió" (en no-cors esto casi siempre será true si no hubo error de red)
-    console.log('✅ submitDataToSheet success:', success);
-
-    setIsSubmitting(false);
-    nextLevel();
+      const success = await submitDataToSheet(formData);
+      console.log('✅ submitDataToSheet success:', success);
+    } catch (err) {
+      console.error('❌ Error en handleSubmit:', err);
+    } finally {
+      setIsSubmitting(false);
+      nextLevel();
+    }
   };
 
   return (
@@ -94,10 +106,10 @@ const App: React.FC = () => {
         </AnimatePresence>
       </main>
 
-      {/* Footer background decor */}
       <div className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400" />
     </div>
   );
 };
 
 export default App;
+
