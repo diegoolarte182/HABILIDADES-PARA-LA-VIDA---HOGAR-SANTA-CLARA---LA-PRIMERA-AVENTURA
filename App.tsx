@@ -28,18 +28,21 @@ const App: React.FC = () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+
+    // ✅ DEBUG 1: ver formData completo ANTES de enviar
+    console.log('✅ FORMDATA COMPLETO (antes de enviar):', formData);
+
     const success = await submitDataToSheet(formData);
-    
-    // In a production app, we would handle errors here (e.g., show a toast).
-    // For this educational context, we will proceed to the success screen to ensure a positive closure
-    // even if the script URL is a placeholder.
+
+    // ✅ DEBUG 2: ver si "envió" (en no-cors esto casi siempre será true si no hubo error de red)
+    console.log('✅ submitDataToSheet success:', success);
+
     setIsSubmitting(false);
     nextLevel();
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 text-gray-800 font-sans selection:bg-purple-200">
-      
       <ProgressBar currentLevel={currentLevel} totalLevels={TOTAL_LEVELS} />
 
       <main className="container mx-auto px-4 pt-20 pb-12 min-h-screen flex flex-col justify-center">
@@ -49,37 +52,37 @@ const App: React.FC = () => {
           )}
 
           {currentLevel === 1 && (
-            <Level1Identity 
+            <Level1Identity
               key="level1"
-              data={formData} 
-              onChange={handleFieldChange} 
-              onNext={nextLevel} 
+              data={formData}
+              onChange={handleFieldChange}
+              onNext={nextLevel}
             />
           )}
 
           {currentLevel === 2 && (
-            <Level2Backpack 
+            <Level2Backpack
               key="level2"
-              data={formData} 
-              onChange={handleFieldChange} 
-              onNext={nextLevel} 
+              data={formData}
+              onChange={handleFieldChange}
+              onNext={nextLevel}
             />
           )}
 
           {currentLevel === 3 && (
-            <Level3Compass 
+            <Level3Compass
               key="level3"
-              data={formData} 
-              onChange={handleFieldChange} 
-              onNext={nextLevel} 
+              data={formData}
+              onChange={handleFieldChange}
+              onNext={nextLevel}
             />
           )}
 
           {currentLevel === 4 && (
-            <Level4Treasure 
+            <Level4Treasure
               key="level4"
-              data={formData} 
-              onChange={handleFieldChange} 
+              data={formData}
+              onChange={handleFieldChange}
               onSubmit={handleSubmit}
               isSubmitting={isSubmitting}
             />
@@ -90,7 +93,7 @@ const App: React.FC = () => {
           )}
         </AnimatePresence>
       </main>
-      
+
       {/* Footer background decor */}
       <div className="fixed bottom-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-300 via-purple-400 to-pink-400" />
     </div>
