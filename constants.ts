@@ -1,5 +1,7 @@
+// constants.ts
+
 export const GOOGLE_SHEET_URL =
-  "https://script.google.com/macros/library/d/1Q2DdYua2ojdJTwzEH2SdvVLPJKsIDJ9HQgVcMJ527j1E2jlmP58h7Rzf/9";
+  "https://script.google.com/macros/s/AKfycbxqJiKOoYKMDn2yW1mWLqVy9to4gN8hqSxiyTH2j9eJtapFaAWB6nUethah58-cxtg1/exec";
 
 export const ANIMATION_VARIANTS = {
   hidden: { opacity: 0, x: 20 },
@@ -7,4 +9,7 @@ export const ANIMATION_VARIANTS = {
   exit: { opacity: 0, x: -20 }
 };
 
-export const TRANSITION = { duration: 0.5, ease: "easeInOut" };
+export const TRANSITION = {
+  duration: 0.5,
+  ease: "easeInOut"
+};
